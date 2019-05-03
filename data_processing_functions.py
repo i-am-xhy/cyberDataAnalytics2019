@@ -41,6 +41,15 @@ xdr_conversion_rates = {
     'AUD': 1.97804
 
 }
+
+def filter(dictlist, column, value):
+    # returns all dictlist entries with column==value
+    result = []
+    for line in dictlist:
+        if line[column] == value:
+            result.append(line)
+    return result
+
 def add_imf_currency_conversion(dictlist):
     # adds an additional currency field in which the base currency is transferred to a uniform currency
     # uses imf special drawing rights to be more stable, might need to be expanded to take into account relative purchase power over time
