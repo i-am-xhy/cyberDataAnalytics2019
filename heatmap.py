@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import csv
 import math
-import data_processing_functions1 as dpf
-from data_processing_functions1 import process_dict_reader
+import data_processing_functions as dpf
+from data_processing_functions import process_dict_reader
 import datetime
 import random
 
@@ -16,7 +16,7 @@ from sklearn.preprocessing import OneHotEncoder
 from imblearn.over_sampling import RandomOverSampler
 from imblearn.over_sampling import SMOTE
 from sklearn.svm import LinearSVC
-import numpy as geek
+from sklearn import neighbors
 ###############################################################################
 #%% 1. Plot a histogram over the fraud and good transactions
 with open('data_for_student_case.csv') as file:
@@ -219,6 +219,7 @@ print('the final num of records:', count_record)
 x = []#contains features
 y = []#contains labels
 
+random.shuffle(data)
 for item in data:#split data into x,y
     x.append(item[0:-2])
     y.append(item[-2])
@@ -260,11 +261,23 @@ for i in range(len(x_mean)):
     ch_dfa.write(' '.join(sentence))
     ch_dfa.write('\n')
     sentence=[]
-    
 ## A simple alternative
 #with open(des, "w") as output:
 #    writer = csv.writer(output, lineterminator='\n')
-#    writer.writerows(x_mean)       
+#    writer.writerows(x_mean)
+    
+#%% 5b. CLASSIFIER give in example code
+x_array = np.array(x)
+y_array = np.array(y)
+usx = x_array
+usy = y_array
+x_train1, x_test1, y_train1, y_test1 = train_test_split(usx, usy, test_size = 0.2)#test_size: proportion of train/test data
+clf = neighbors.KNeighborsClassifier(algorithm = 'kd_tree')
+clf.fit(x_train1, y_train1)
+y_predict1 = clf.predict(x_test1)
+
+dpf.get_cl_result(y_predict1,y_test1)
+
 
 #%%  6. Use OneHotCoder instead to modify categorial feature to number in data set
 #
