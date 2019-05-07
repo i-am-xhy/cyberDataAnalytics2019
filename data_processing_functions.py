@@ -62,9 +62,11 @@ def add_imf_currency_conversion(dictlist):
     for line in dictlist:
         currency = line['currencycode']
         amount = float(line['amount'])
-
         line['xdr_amount'] = amount/xdr_conversion_rates[currency]
     return dictlist
+
+
+
 
 def get_distinct_in_column(dictlist, column_name):
     # prints all distinct values in a given column
