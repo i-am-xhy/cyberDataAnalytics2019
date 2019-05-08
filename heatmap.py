@@ -106,31 +106,39 @@ over_labelset = [item[1] for item in over_wholeset]
 
 #%% Use LR classifier to test data with/without oversampling
 # Test the oversampled dataset
-x_train, x_test, y_train, y_test = train_test_split(over_dataset, over_labelset, test_size = 0.2)
+x_array = np.array(over_dataset)
+y_array = np.array(over_labelset)
+usx = x_array.astype(np.float64)
+usy = y_array.astype(np.float64)
+#x_train, x_test, y_train, y_test = train_test_split(over_dataset, over_labelset, test_size = 0.2)
+x_train, x_test, y_train, y_test = train_test_split(usx, usy, test_size = 0.2)
 l_clf = LogisticRegression()
 l_clf.fit(x_train,y_train)
 l_prediction = l_clf.predict(x_test)
 dpf.get_cl_result(l_prediction,y_test)
 
 # Test the original dataset
-x_train, x_test, y_train, y_test = train_test_split(dataset, labelset, test_size = 0.2)
+x_array = np.array(dataset)
+y_array = np.array(labelset)
+usx = x_array.astype(np.float64)
+usy = y_array.astype(np.float64)
+#x_train, x_test, y_train, y_test = train_test_split(dataset, labelset, test_size = 0.2)
+x_train, x_test, y_train, y_test = train_test_split(usx, usy, test_size = 0.2)
 l_clf = LogisticRegression()
 l_clf.fit(x_train,y_train)
 l_prediction = l_clf.predict(x_test)
 dpf.get_cl_result(l_prediction,y_test)
 
-##%% SMOTE TESTING
-#X_resampled, y_resampled = SMOTE().fit_resample(x_train, y_train)
-##clf_smote = LinearSVC().fit(X_resampled, y_resampled)
-#print(len(X_resampled))
-#print(len(y_resampled))
-#
-#sm = SMOTE(random_state=42)
-#X_res, y_res = sm.fit_resample(x_train, y_train)
-#
-#l_clf.fit(X_res,y_res)
-#l_prediction = l_clf.predict(x_test)
-#dpf.get_cl_result(l_prediction,y_test)
+#%% SMOTE TESTING
+
+sm = SMOTE()
+x_res, y_res = sm.fit_resample(x_train, y_train)
+print(len(x_res))
+print(len(y_res))
+
+l_clf.fit(X_res,y_res)
+l_prediction = l_clf.predict(x_test)
+dpf.get_cl_result(l_prediction,y_test)
 
 ##################################################################################
 #%% 4. Put all features/labels into a big datasets, basically pull from the example code in bright space
@@ -208,7 +216,7 @@ for line_ah in ah:
     data.append([issuercountry, txvariantcode, issuer_id, amount, currencycode,
                     shoppercountry, interaction, verification, cvcresponse, creationdate_stamp,
                      accountcode, mail_id, ip_id, card_id, xdr_amount, label_temp, creationdate])# add the interested features here
-    num_data.append([amount])
+    num_data.append([xdr_amount, label_temp])
     label_only.append(label_temp)
 print('the final num of records:', count_record)
 
@@ -253,30 +261,53 @@ x_mean = x;
 des = 'C:/Users/YI/Desktop/TUD/Cyber data analytics/New folder/spyder_fraud/fraud/encoded_cag_data.csv'
 ch_dfa = open(des,'w')
 
-sentence = []
-for i in range(len(x_mean)):
-    for j in range(len(x_mean[i])):
-        sentence.append(str(x_mean[i][j]))
-    sentence.append(str(y[i]))
-    ch_dfa.write(' '.join(sentence))
-    ch_dfa.write('\n')
-    sentence=[]
-## A simple alternative
-#with open(des, "w") as output:
-#    writer = csv.writer(output, lineterminator='\n')
-#    writer.writerows(x_mean)
+with open(des, "w") as output:
+    writer = csv.writer(output, lineterminator='\n')
+    writer.writerows(x_mean)
+# Alternative given in example code
+#sentence = []
+#for i in range(len(x_mean)):
+#    for j in range(len(x_mean[i])):
+#        sentence.append(str(x_mean[i][j]))
+#    sentence.append(str(y[i]))
+#    ch_dfa.write(' '.join(sentence))
+#    ch_dfa.write('\n')
+#    sentence=[]
     
 #%% 5b. CLASSIFIER give in example code
 x_array = np.array(x)
 y_array = np.array(y)
-usx = x_array
-usy = y_array
+usx = x_array.astype(np.float64)
+usy = y_array.astype(np.float64)
+
 x_train1, x_test1, y_train1, y_test1 = train_test_split(usx, usy, test_size = 0.2)#test_size: proportion of train/test data
 clf = neighbors.KNeighborsClassifier(algorithm = 'kd_tree')
 clf.fit(x_train1, y_train1)
 y_predict1 = clf.predict(x_test1)
 
 dpf.get_cl_result(y_predict1,y_test1)
+#%% apply SMOTE
+sm = SMOTE()
+x_res, y_res = sm.fit_resample(x_train1, y_train1)
+print(len(x_res))
+print(len(y_res))
+
+clf = neighbors.KNeighborsClassifier(algorithm = 'kd_tree')
+clf.fit(x_res, y_res)
+y_predict1 = clf.predict(x_test1)
+
+dpf.get_cl_result(y_predict1,y_test1)
+#%% Save the resampled data for comparison
+x_mean = x_res;
+des = 'C:/Users/YI/Desktop/TUD/Cyber data analytics/New folder/spyder_fraud/fraud/encoded_cag_data111.csv'
+ch_dfa = open(des,'w')
+
+with open(des, "w") as output:
+    writer = csv.writer(output, lineterminator='\n')
+    writer.writerows(x_mean)
+
+
+
 
 
 #%%  6. Use OneHotCoder instead to modify categorial feature to number in data set
@@ -293,5 +324,8 @@ dpf.get_cl_result(y_predict1,y_test1)
 #data444 = enc.transform(X).toarray()
 #
 ## 
+#%%
+
+
 
 
