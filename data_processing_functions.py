@@ -1,3 +1,7 @@
+import numpy
+import datetime
+
+
 def process_dict_reader(dictreader):
     dictlist = remove_refused(dictreader)
     dictlist = clean_formatting(dictlist)
@@ -30,6 +34,11 @@ def clean_formatting(dictlist):
         line['cvcresponsecode'] = int(line['cvcresponsecode'])
         if line['cvcresponsecode'] > 2:
             line['cvcresponsecode'] = 3
+
+        date = datetime.datetime.strptime(line['creationdate'], '%Y-%m-%d %H:%M:%S')
+        line['year'] = date.year
+        line['month'] = date.month
+        line['day'] = date.day
 
     return dictlist
 # how many of that currency is worth 1 XDR or imf special drawing right.
@@ -83,3 +92,50 @@ def get_column(dictlist, column_name):
     for line in dictlist:
         result.append(line[column_name])
     return result
+
+def get_combinatory_counts(dictlist, column1, column2, countColumn='label', countValue=1):
+    # counts for all unique pairs of values in column1 and column2 the amount of times that countvalue is encountered in the countcolumn
+
+    filtered_dictlist = filter(dictlist, countColumn, countValue)
+    distinct1 = list(get_distinct_in_column(filtered_dictlist, column1))
+    distinct2 = list(get_distinct_in_column(filtered_dictlist, column2))
+
+    result = numpy.zeros((len(distinct2), len(distinct1)))
+
+    for line in filtered_dictlist:
+        x_index = distinct1.index(line[column1])
+        y_index = distinct2.index(line[column2])
+
+        result[y_index, x_index] += 1.0
+    return result, distinct1, distinct2
+
+def get_combinatory_pressure(dictlist, column1, column2):
+    # counts for all unique pairs of values in column1 and column2 the amount of times that countvalue is encountered in the countcolumn
+
+    filtered_dictlist = filter(dictlist, 'label', 1)
+    distinct1 = list(get_distinct_in_column(filtered_dictlist, column1))
+    distinct2 = list(get_distinct_in_column(filtered_dictlist, column2))
+
+    result = numpy.zeros((len(distinct2), len(distinct1)))
+
+    for line in dictlist:
+        try:
+            x_index = distinct1.index(line[column1])
+            y_index = distinct2.index(line[column2])
+        except:
+            pass # out of range error, which is fine
+        if line['label'] != 1:
+            result[y_index, x_index] -= 1.0
+            continue
+
+        result[y_index, x_index] += 1.0
+    return result, distinct1, distinct2
+
+# def dict_of_dicts_to_matrix(dict_of_dicts):
+#     result = []
+#     for key, dicts in dict_of_dicts.items():
+#         row_result = []
+#         for other_key, value in dicts.items():
+#             row_result.append(value)
+#         result.append(row_result)
+#     return result
