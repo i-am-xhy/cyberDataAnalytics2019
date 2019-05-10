@@ -93,6 +93,16 @@ def get_column(dictlist, column_name):
         result.append(line[column_name])
     return result
 
+def get_columns(dictlist, column_names):
+    # returns a column as a list
+    result = []
+    for line in dictlist:
+        row_result = []
+        for column_name in column_names:
+            row_result.append(line[column_name])
+        result.append(row_result)
+    return result
+
 def get_combinatory_counts(dictlist, column1, column2, countColumn='label', countValue=1):
     # counts for all unique pairs of values in column1 and column2 the amount of times that countvalue is encountered in the countcolumn
 
@@ -139,3 +149,42 @@ def get_combinatory_pressure(dictlist, column1, column2):
 #             row_result.append(value)
 #         result.append(row_result)
 #     return result
+def get_cl_result(predictions, trueLabels):
+    TP, FP, FN, TN = 0, 0, 0, 0
+    for prediction, trueLabel in zip(predictions, trueLabels):
+        prediction = int(prediction)
+        trueLabel = trueLabel[0]
+        if trueLabel == 1 and prediction == 1:
+            TP += 1
+        if trueLabel == 0 and prediction == 1:
+            FP += 1
+        if trueLabel == 1 and prediction == 0:
+            FN += 1
+        if trueLabel == 0 and prediction == 0:
+            TN += 1
+    print ('TP: '+ str(TP))
+    print ('FP: '+ str(FP))
+    print ('FN: '+ str(FN))
+    print ('TN: '+ str(TN))
+    return TP,FP,FN, TN
+
+def get_fraud(predictions, trueLabels, testdata):
+    cost_to_false_accusation = 50
+    total_cost = 0
+    total_possible_fraud = 0
+    for prediction, trueLabel, row in zip(predictions, trueLabels, testdata):
+        prediction = int(prediction)
+        trueLabel = trueLabel[0]
+        amount = row[0]
+        # if trueLabel == 1 and prediction == 1:
+        #     TP += 1
+        if trueLabel == 0 and prediction == 1:
+            total_cost += cost_to_false_accusation
+        if trueLabel == 1 and prediction == 0:
+            total_cost += amount
+        if trueLabel == 1:
+            total_possible_fraud += amount
+        # if trueLabel == 0 and prediction == 0:
+        #     TN += 1
+    print("total cost of operation {} total amount of fraud catchable {} for a fraud reduction of {}".format(total_cost, total_possible_fraud, max((total_possible_fraud-total_cost) / total_possible_fraud, 0)))
+    return max((total_possible_fraud-total_cost) / total_possible_fraud, 0)
