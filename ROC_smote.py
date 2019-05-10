@@ -73,12 +73,10 @@ x_res, y_res = sm.fit_resample(x_train, y_train)
 l_clf = LogisticRegression()
 l_clf.fit(x_train,y_train)
 l_prediction = l_clf.predict(x_test)
-dpf.get_cl_result(l_prediction,y_test)
 dpf.plot_ROC(l_clf, x_test, y_test)
 # Test the SMOTED dataset
 l_clf.fit(x_res,y_res)
 l_prediction = l_clf.predict(x_test)
-dpf.get_cl_result(l_prediction,y_test)
 plot_ROC(l_clf, x_test, y_test)
 
 #%% 2. Nearest Neighbors
@@ -86,12 +84,10 @@ plot_ROC(l_clf, x_test, y_test)
 l_clf = neighbors.KNeighborsClassifier(algorithm = 'auto')
 l_clf.fit(x_train,y_train)
 l_prediction = l_clf.predict(x_test)
-dpf.get_cl_result(l_prediction,y_test)
 dpf.plot_ROC(l_clf, x_test, y_test)
 # Test the SMOTED dataset
 l_clf.fit(x_res,y_res)
 l_prediction = l_clf.predict(x_test)
-dpf.get_cl_result(l_prediction,y_test)
 plot_ROC(l_clf, x_test, y_test)
 
 #%% 3. Neural Network
@@ -99,12 +95,10 @@ plot_ROC(l_clf, x_test, y_test)
 l_clf = MLPClassifier()
 l_clf.fit(x_train,y_train)
 l_prediction = l_clf.predict(x_test)
-dpf.get_cl_result(l_prediction,y_test)
 dpf.plot_ROC(l_clf, x_test, y_test)
 # Test the SMOTED dataset
 l_clf.fit(x_res,y_res)
 l_prediction = l_clf.predict(x_test)
-dpf.get_cl_result(l_prediction,y_test)
 plot_ROC(l_clf, x_test, y_test)
 
 

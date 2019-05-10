@@ -1,6 +1,7 @@
 import numpy
 import datetime
-
+from matplotlib import pyplot
+from sklearn.metrics import roc_curve, roc_auc_score
 
 def process_dict_reader(dictreader):
     dictlist = remove_refused(dictreader)
@@ -242,3 +243,27 @@ def get_fraud(predictions, trueLabels, testdata, cost_to_false_accusation):
     print("total cost of operation {} total amount of fraud catchable {} for a fraud reduction of {}".format(total_cost, total_possible_fraud, max((total_possible_fraud-total_cost) / total_possible_fraud, 0)))
     print("total cost of operation is constructed out of {} customers being falsely accused and {} XDR in fraud missed".format(customer_complaints, fraud_missed))
     return max((total_possible_fraud-total_cost) / total_possible_fraud, 0)
+
+def get_column_set(dictlist, column_name):
+    # returns a column as a list
+    result = []
+    for line in dictlist:
+        result.append([line[column_name]])
+    return result
+
+def plot_ROC(clf, x_test, y_test):
+    # predict probabilities
+    probs = clf.predict_proba(x_test)
+    # keep probabilities for the positive outcome only
+    probs = probs[:, 1]
+    # calculate AUC
+    auc = roc_auc_score(y_test, probs)
+    print('AUC: %.3f' % auc)
+    # calculate roc curve
+    fpr, tpr, thresholds = roc_curve(y_test, probs)
+    # plot no skill
+    pyplot.plot([0, 1], [0, 1], linestyle='--')
+    # plot the roc curve for the model
+    pyplot.plot(fpr, tpr, marker='.')
+    # show the plot
+    pyplot.show()
