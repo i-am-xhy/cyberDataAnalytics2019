@@ -103,6 +103,49 @@ def get_columns(dictlist, column_names):
         result.append(row_result)
     return result
 
+def convert_to_categorical_option_true(columns, columnValues):
+    result = []
+    for row in columns:
+        matchesColumnValues = 1
+        for item, columnValue in zip(row,columnValues):
+            if item!=columnValue:
+                matchesColumnValues = 0
+                break
+        result.append(matchesColumnValues)
+    return result
+
+def row_has_value(value, falseValue, *args):
+    result = []
+    dataset = list(zip(*args))
+
+    for row in dataset:
+        rowHasTrue = falseValue
+        for element in row:
+            if element == value:
+                rowHasTrue=value
+                break
+        result.append(rowHasTrue)
+    return result
+
+def previous_fraud_counts(dictlist, column):
+    # for unique items in column counts the amount of preceding fraud counts
+    # assumes ordering is chronological
+    result = []
+    # print(dictlist)
+    previousCounts = {}
+    for row in dictlist:
+        value = row[column]
+        if value not in previousCounts:
+            previousCounts[value] = 0
+
+        result.append(previousCounts[value])
+
+        if row['label'] == 1:
+            previousCounts[value] += 1
+
+    return result
+
+
 def get_combinatory_counts(dictlist, column1, column2, countColumn='label', countValue=1):
     # counts for all unique pairs of values in column1 and column2 the amount of times that countvalue is encountered in the countcolumn
 
@@ -162,16 +205,24 @@ def get_cl_result(predictions, trueLabels):
             FN += 1
         if trueLabel == 0 and prediction == 0:
             TN += 1
+    total_fraud = TP + FN
+    total_non_fraud = TN + FP
+    fraud_accuracy = (total_fraud-FN)/total_fraud
+    non_fraud_accuracy = (total_non_fraud-FP)/total_non_fraud
     print ('TP: '+ str(TP))
     print ('FP: '+ str(FP))
     print ('FN: '+ str(FN))
     print ('TN: '+ str(TN))
-    return TP,FP,FN, TN
+    print('Accuracy: {} with fraud accuracy: {} and non-fraud accuracy: {}'.format((fraud_accuracy+non_fraud_accuracy)/2, fraud_accuracy, non_fraud_accuracy))
+    return TP,FP,FN, TN, (fraud_accuracy+non_fraud_accuracy)/2
 
-def get_fraud(predictions, trueLabels, testdata):
-    cost_to_false_accusation = 50
+
+def get_fraud(predictions, trueLabels, testdata, cost_to_false_accusation):
+
     total_cost = 0
     total_possible_fraud = 0
+    customer_complaints = 0
+    fraud_missed = 0
     for prediction, trueLabel, row in zip(predictions, trueLabels, testdata):
         prediction = int(prediction)
         trueLabel = trueLabel[0]
@@ -180,11 +231,14 @@ def get_fraud(predictions, trueLabels, testdata):
         #     TP += 1
         if trueLabel == 0 and prediction == 1:
             total_cost += cost_to_false_accusation
+            customer_complaints += 1
         if trueLabel == 1 and prediction == 0:
             total_cost += amount
+            fraud_missed += amount
         if trueLabel == 1:
             total_possible_fraud += amount
         # if trueLabel == 0 and prediction == 0:
         #     TN += 1
     print("total cost of operation {} total amount of fraud catchable {} for a fraud reduction of {}".format(total_cost, total_possible_fraud, max((total_possible_fraud-total_cost) / total_possible_fraud, 0)))
+    print("total cost of operation is constructed out of {} customers being falsely accused and {} XDR in fraud missed".format(customer_complaints, fraud_missed))
     return max((total_possible_fraud-total_cost) / total_possible_fraud, 0)
